@@ -69,7 +69,7 @@ private Double Memory ;
         {modulo, log, or, and, no, log10, exp},
         {hextodeci, tohex, decitobin, bitodec, hextobi, bitohexa, jButton1},
         {answer, sinh, cosh, tanh, asin, acos, atan},
-        {fact, decitooct, bitooct, octodec, octtobi, calmean, devia}
+        {fact, decitooct, bitooct, octodec, octtobi}
     };
 
     for (int row = 0; row < buttons.length; row++) {
@@ -85,16 +85,19 @@ private Double Memory ;
 
     /* ================= History Panel ================= */
 
-    JPanel historyPanel = new JPanel(new BorderLayout());
-    historyPanel.add(new JLabel("History"), BorderLayout.NORTH);
+    JPanel historyPanel = new JPanel(new BorderLayout(4, 4));
+    historyPanel.setBorder(BorderFactory.createTitledBorder("History"));
     historyPanel.add(jScrollPane1, BorderLayout.CENTER);
+    historyPanel.setMinimumSize(new Dimension(180, 140));
 
     /* ================= Stats Panel ================= */
 
     JPanel statsPanel = new JPanel(new GridBagLayout());
+    statsPanel.setBorder(BorderFactory.createTitledBorder("Statistics"));
     GridBagConstraints gbcStats = new GridBagConstraints();
     gbcStats.insets = new Insets(3, 3, 3, 3);
     gbcStats.fill = GridBagConstraints.BOTH;
+    gbcStats.weightx = 1.0;
 
     gbcStats.gridx = 0; gbcStats.gridy = 0;
     statsPanel.add(new JLabel("Count:"), gbcStats);
@@ -117,62 +120,123 @@ private Double Memory ;
     gbcStats.gridx = 2;
     statsPanel.add(calmean, gbcStats);
 
+    gbcStats.gridx = 3;
+    statsPanel.add(devia, gbcStats);
+
     gbcStats.gridx = 0; gbcStats.gridy = 2;
     gbcStats.gridwidth = 4;
+    gbcStats.weighty = 1.0;
     statsPanel.add(jScrollPane2, gbcStats);
 
-    /* ================= Equation Panel ================= */
+    
 
-    JPanel equationPanel = new JPanel(new GridBagLayout());
-    GridBagConstraints gbcEq = new GridBagConstraints();
-    gbcEq.insets = new Insets(3, 3, 3, 3);
-    gbcEq.fill = GridBagConstraints.BOTH;
 
-    gbcEq.gridx = 0; gbcEq.gridy = 0;
-    gbcEq.gridwidth = 8;
-    equationPanel.add(new JLabel("ax² + bx + c = d"), gbcEq);
 
-    gbcEq.gridwidth = 1;
-    gbcEq.gridy = 1;
+    /* ================= Add Panels to Main Window ================= */
 
-    equationPanel.add(a, gbcEq);
-    gbcEq.gridx++; equationPanel.add(new JLabel("x² +"), gbcEq);
-    gbcEq.gridx++; equationPanel.add(b, gbcEq);
-    gbcEq.gridx++; equationPanel.add(new JLabel("x +"), gbcEq);
-    gbcEq.gridx++; equationPanel.add(c, gbcEq);
-    gbcEq.gridx++; equationPanel.add(new JLabel("="), gbcEq);
-    gbcEq.gridx++; equationPanel.add(d, gbcEq);
-    gbcEq.gridx++; equationPanel.add(caldeg2, gbcEq);
-
-    gbcEq.gridx = 0; gbcEq.gridy = 2; gbcEq.gridwidth = 3;
-    equationPanel.add(x, gbcEq);
-
-    gbcEq.gridx = 3;
-    equationPanel.add(y, gbcEq);
-
-    gbcEq.gridx = 6; gbcEq.gridwidth = 2;
-    equationPanel.add(caldeg1, gbcEq);
-
-    /* ================= Main Layout ================= */
-
-    gbc.gridx = 0; gbc.gridy = 0;
-    gbc.gridwidth = 2;
+    // Calculator takes the upper part of the window.
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 1;
+    gbc.weightx = 1.0;
+    gbc.weighty = 0.72;
+    gbc.fill = GridBagConstraints.BOTH;
     getContentPane().add(calcScroll, gbc);
 
-    gbc.gridx = 2; gbc.gridwidth = 1;
-    getContentPane().add(historyPanel, gbc);
+    // History and statistics are displayed side by side underneath.
+    JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 8, 8));
+    bottomPanel.setBorder(BorderFactory.createEmptyBorder(2, 5, 5, 5));
+    bottomPanel.add(historyPanel);
+    bottomPanel.add(statsPanel);
 
-    gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
-    getContentPane().add(statsPanel, gbc);
-
-    gbc.gridx = 2;
-    getContentPane().add(equationPanel, gbc);
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 1;
+    gbc.weightx = 1.0;
+    gbc.weighty = 0.28;
+    gbc.fill = GridBagConstraints.BOTH;
+    getContentPane().add(bottomPanel, gbc);
 
     setMinimumSize(new Dimension(800, 600));
+    setSize(1100, 800);
     revalidate();
     repaint();
 }
+private void createMenuBar() {
+    // Use the menu bar already created by initComponents().
+    // This preserves the original View, Edit, and Help menus.
+    JMenuBar menuBar = jMenuBar1;
+    if (menuBar == null) {
+        menuBar = new JMenuBar();
+        jMenuBar1 = menuBar;
+    }
 
+    // Ensure the original menus are present, without adding duplicates.
+    if (view != null && view.getParent() != menuBar) menuBar.add(view);
+    if (edit != null && edit.getParent() != menuBar) menuBar.add(edit);
+    if (help != null && help.getParent() != menuBar) menuBar.add(help);
+
+    // Avoid duplicate custom menus if this method is called again.
+    for (int i = menuBar.getMenuCount() - 1; i >= 0; i--) {
+        JMenu existing = menuBar.getMenu(i);
+        if (existing != null && ("Equation".equals(existing.getText()) ||
+                "Matrix".equals(existing.getText()) ||
+                "Calculus".equals(existing.getText()))) {
+            menuBar.remove(i);
+        }
+    }
+
+    JMenu equationMenu = new JMenu("Equation");
+    JMenuItem equationItem = new JMenuItem("Equation Solver");
+    equationItem.addActionListener(e -> {
+        EquationForm form = new EquationForm();
+        form.setVisible(true);
+    });
+    equationMenu.add(equationItem);
+
+    JMenu matrixMenu = new JMenu("Matrix");
+    JMenuItem matrixItem = new JMenuItem("Matrix Calculator");
+    matrixItem.addActionListener(e -> {
+        MatrixForm form = new MatrixForm();
+        form.setVisible(true);
+    });
+    matrixMenu.add(matrixItem);
+
+    menuBar.add(equationMenu);
+    menuBar.add(matrixMenu);
+    setJMenuBar(menuBar);
+}
+
+private void addCalculusMenu() {
+    JMenuBar bar = getJMenuBar();
+    if (bar == null) {
+        bar = (jMenuBar1 != null) ? jMenuBar1 : new JMenuBar();
+        setJMenuBar(bar);
+    }
+
+    // Do not add Calculus more than once.
+    for (int i = 0; i < bar.getMenuCount(); i++) {
+        JMenu menu = bar.getMenu(i);
+        if (menu != null && "Calculus".equals(menu.getText())) return;
+    }
+
+    JMenu calculusMenu = new JMenu("Calculus");
+    JMenuItem derivativeItem = new JMenuItem("Differentiation");
+    JMenuItem integralItem = new JMenuItem("Integration");
+
+    derivativeItem.addActionListener(e ->
+        JOptionPane.showMessageDialog(this, "Differentiation selected")
+    );
+    integralItem.addActionListener(e ->
+        JOptionPane.showMessageDialog(this, "Integration selected")
+    );
+
+    calculusMenu.add(derivativeItem);
+    calculusMenu.add(integralItem);
+    bar.add(calculusMenu);
+    bar.revalidate();
+    bar.repaint();
+}
 
  private void Calculation(int n,double in[])
 {
@@ -575,7 +639,9 @@ JOptionPane.showMessageDialog(null,"infinty");
      */
     public NewJFrame() {
         initComponents();
-                makeResponsive();
+        makeResponsive();
+        createMenuBar();
+        addCalculusMenu();
 
     }
 
@@ -592,6 +658,7 @@ JOptionPane.showMessageDialog(null,"infinty");
         jToggleButton1 = new javax.swing.JToggleButton();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
+ 
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
         jMenu4 = new javax.swing.JMenu();
@@ -662,17 +729,7 @@ JOptionPane.showMessageDialog(null,"infinty");
         addomean = new javax.swing.JButton();
         reset = new javax.swing.JButton();
         devia = new javax.swing.JButton();
-        a = new javax.swing.JTextField();
-        b = new javax.swing.JTextField();
-        c = new javax.swing.JTextField();
-        d = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        caldeg2 = new javax.swing.JButton();
-        x = new javax.swing.JTextField();
-        y = new javax.swing.JTextField();
-        caldeg1 = new javax.swing.JButton();
+      
         jMenuBar1 = new javax.swing.JMenuBar();
         view = new javax.swing.JMenu();
         history = new javax.swing.JCheckBoxMenuItem();
@@ -1197,52 +1254,8 @@ JOptionPane.showMessageDialog(null,"infinty");
             }
         });
         getContentPane().add(devia, new java.awt.GridBagConstraints());
-        getContentPane().add(a, new java.awt.GridBagConstraints());
 
-        b.setText("     ");
-        getContentPane().add(b, new java.awt.GridBagConstraints());
 
-        c.setText("      ");
-        getContentPane().add(c, new java.awt.GridBagConstraints());
-
-        d.setText("          ");
-        d.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dActionPerformed(evt);
-            }
-        });
-        getContentPane().add(d, new java.awt.GridBagConstraints());
-
-        jLabel1.setText("x2+");
-        getContentPane().add(jLabel1, new java.awt.GridBagConstraints());
-
-        jLabel2.setText("x +");
-        getContentPane().add(jLabel2, new java.awt.GridBagConstraints());
-
-        jLabel3.setText("=");
-        getContentPane().add(jLabel3, new java.awt.GridBagConstraints());
-
-        caldeg2.setText("caldeg2");
-        caldeg2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                caldeg2ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(caldeg2, new java.awt.GridBagConstraints());
-
-        x.setText(" ");
-        getContentPane().add(x, new java.awt.GridBagConstraints());
-
-        y.setText(" ");
-        getContentPane().add(y, new java.awt.GridBagConstraints());
-
-        caldeg1.setText("caldeg1");
-        caldeg1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                caldeg1ActionPerformed(evt);
-            }
-        });
-        getContentPane().add(caldeg1, new java.awt.GridBagConstraints());
 
         view.setText("View");
 
@@ -2072,28 +2085,6 @@ for(int i=0;i<count;i++){
 // TODO add your handling code here:
     }//GEN-LAST:event_deviaActionPerformed
 
-    private void dActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_dActionPerformed
-
-    private void caldeg2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caldeg2ActionPerformed
- double a1=Double.parseDouble( a.getText( ));
-double b1=Double.parseDouble( b.getText( ));
-double c1=Double.parseDouble( c.getText( ))-Double.parseDouble(d.getText());
-double x1=((-1.0*b1)+ Math.sqrt((b1*b1)-(4.0*a1*c1)))/(2.0*a1);
-double x2=((-1.0*b1)- Math.sqrt((b1*b1)-(4.0*a1*c1)))/(2.0*a1); 
-x.setText(Double.toString(x1));
-y.setText(Double.toString(x2));
-// TODO add your handling code here:
-    }//GEN-LAST:event_caldeg2ActionPerformed
-
-    private void caldeg1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caldeg1ActionPerformed
- double b1=Double.parseDouble( b.getText( ));
-double c1=Double.parseDouble( c.getText( ))-Double.parseDouble(d.getText());
-double y1=(-1*c1)/b1;
-x.setText(Double.toString(y1));
-// TODO add your handling code here:
-    }//GEN-LAST:event_caldeg1ActionPerformed
 
     private void printHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printHistoryActionPerformed
 
@@ -2134,21 +2125,20 @@ x.setText(Double.toString(y1));
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField a;
+
     private javax.swing.JButton acos;
     private javax.swing.JButton addomean;
     private javax.swing.JButton and;
     private javax.swing.JButton answer;
     private javax.swing.JButton asin;
     private javax.swing.JButton atan;
-    private javax.swing.JTextField b;
+
     private javax.swing.JButton back;
     private javax.swing.JButton bitodec;
     private javax.swing.JButton bitohexa;
     private javax.swing.JButton bitooct;
-    private javax.swing.JTextField c;
-    private javax.swing.JButton caldeg1;
-    private javax.swing.JButton caldeg2;
+  
+
     private javax.swing.JButton calmean;
     private javax.swing.JButton clear;
     private javax.swing.JMenuItem clearHistory;
@@ -2158,7 +2148,6 @@ x.setText(Double.toString(y1));
     private javax.swing.JButton cose;
     private javax.swing.JButton cosh;
     private javax.swing.JTextField counto;
-    private javax.swing.JTextField d;
     private javax.swing.JButton decitobin;
     private javax.swing.JButton decitooct;
     private javax.swing.JButton devia;
@@ -2181,9 +2170,6 @@ x.setText(Double.toString(y1));
     private javax.swing.JTextField inputField;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JList<String> jList1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
@@ -2230,8 +2216,7 @@ x.setText(Double.toString(y1));
     private javax.swing.JButton tohex;
     private javax.swing.JButton two;
     private javax.swing.JMenu view;
-    private javax.swing.JTextField x;
-    private javax.swing.JTextField y;
     private javax.swing.JButton zero;
     // End of variables declaration//GEN-END:variables
 }
+
